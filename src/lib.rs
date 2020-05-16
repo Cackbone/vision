@@ -2,8 +2,19 @@ use std::error::Error;
 
 use image::{io::Reader, DynamicImage};
 
+#[derive(Clone)]
+pub struct VisionImage(DynamicImage);
+
+impl VisionImage {
+    pub fn load(path: &str) -> Result<Self, Box<dyn Error>> {
+        let dyn_image = Reader::open(path)?.with_guessed_format()?.decode()?;
+
+        Ok(VisionImage(dyn_image))
+    }
+}
+
 pub struct Vision {
-    images: Vec<DynamicImage>,
+    images: Vec<VisionImage>,
 }
 
 impl Vision {
@@ -13,11 +24,15 @@ impl Vision {
         }
     }
 
-    pub fn load(&mut self, file: &str) -> Result<(), Box<dyn Error>> {
-        let image = Reader::open(file)?.with_guessed_format()?.decode()?;
+    pub fn load(&mut self, path: &str) -> Result<(), Box<dyn Error>> {
+        let image = VisionImage::load(path)?;
 
-        self.images.push(image);
+        self.add(image);
         Ok(())
+    }
+
+    pub fn add(&mut self, image: VisionImage) {
+        self.images.push(image)
     }
 }
 
